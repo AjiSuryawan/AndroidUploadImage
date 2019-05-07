@@ -21,7 +21,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-<<<<<<< HEAD
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -32,12 +31,10 @@
                 android:resource="@xml/file_paths">
             </meta-data>
         </provider>
-=======
 
         <activity android:name=".MainActivity">
 
         </activity>
->>>>>>> 8e4a50850aa122a5ac7a535307b53ce77bef6ddf
     </application>
 
 

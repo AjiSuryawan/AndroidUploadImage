@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                GetImageNameFromEditText = imageName.getText().toString();
+                GetImageNameFromEditText = "makan";
 
                 UploadImageToServer();
 
@@ -215,11 +215,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void UploadImageToServer() {
 
-//        FixBitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
 
-        byteArray = byteArrayOutputStream.toByteArray();
-
-        ConvertImage = Base64.encodeToString(byteArray, Base64.DEFAULT);
 
         class AsyncTaskUploadClass extends AsyncTask<Void, Void, String> {
 
@@ -245,6 +241,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             protected String doInBackground(Void... params) {
 
+                FixBitmap.compress(Bitmap.CompressFormat.PNG, 50, byteArrayOutputStream);
+
+                byteArray = byteArrayOutputStream.toByteArray();
+
+                ConvertImage = Base64.encodeToString(byteArray, Base64.DEFAULT);
+
                 ImageProcessClass imageProcessClass = new ImageProcessClass();
 
                 HashMap<String, String> HashMapParams = new HashMap<String, String>();
@@ -253,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
 
                 HashMapParams.put(ImageName, ConvertImage);
 
-                String FinalData = imageProcessClass.ImageHttpRequest("http://192.168.6.44:81/AndroidImage/upload-image-to-server.php", HashMapParams);
+                String FinalData = imageProcessClass.ImageHttpRequest("http://192.168.6.196:81/AndroidImage/upload-image-to-server.php", HashMapParams);
 
                 return FinalData;
             }
