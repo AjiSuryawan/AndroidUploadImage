@@ -36,10 +36,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
-<<<<<<< HEAD
-=======
-import java.util.Calendar;
->>>>>>> 8e4a50850aa122a5ac7a535307b53ce77bef6ddf
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -101,19 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
         ShowSelectedImage = (ImageView) findViewById(R.id.imageView);
 
-<<<<<<< HEAD
         imageName = (EditText) findViewById(R.id.imageName);
-=======
-        imageName=(EditText)findViewById(R.id.imageName);
-        Date c = Calendar.getInstance().getTime();
-        System.out.println("Current time => " + c);
-
-        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy_HH-mm-ss");
-        String formattedDate = df.format(c);
-        GetImageNameFromEditText = "userLogin"+formattedDate;
-        imageName.setText(GetImageNameFromEditText);
-        imageName.setEnabled(false);
->>>>>>> 8e4a50850aa122a5ac7a535307b53ce77bef6ddf
 
         byteArrayOutputStream = new ByteArrayOutputStream();
 
@@ -132,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                //GetImageNameFromEditText = imageName.getText().toString();
+                GetImageNameFromEditText = imageName.getText().toString();
 
                 UploadImageToServer();
 
@@ -254,12 +238,7 @@ public class MainActivity extends AppCompatActivity {
 
                 progressDialog.dismiss();
 
-<<<<<<< HEAD
                 Toast.makeText(MainActivity.this, string1, Toast.LENGTH_LONG).show();
-=======
-                Toast.makeText(MainActivity.this,string1,Toast.LENGTH_LONG).show();
-                Log.d("makan", "onPostExecute: "+string1);
->>>>>>> 8e4a50850aa122a5ac7a535307b53ce77bef6ddf
 
             }
 
@@ -274,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
 
                 HashMapParams.put(ImageName, ConvertImage);
 
-                String FinalData = imageProcessClass.ImageHttpRequest("http://192.168.6.196:81/AndroidImage/upload-image-to-server.php", HashMapParams);
+                String FinalData = imageProcessClass.ImageHttpRequest("http://192.168.6.44:81/AndroidImage/upload-image-to-server.php", HashMapParams);
 
                 return FinalData;
             }
