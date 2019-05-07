@@ -1,22 +1,22 @@
 package com.androidcodefinder.androiduploadimage;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,6 +26,7 @@ import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -34,12 +35,16 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
 public class MainActivity extends AppCompatActivity {
+
+    private String cameraFilePath;
 
     Button GetImageFromGalleryButton, UploadImageOnServerButton;
 
@@ -49,31 +54,31 @@ public class MainActivity extends AppCompatActivity {
 
     Bitmap FixBitmap;
 
-    String ImageTag = "image_tag" ;
+    String ImageTag = "image_tag";
 
-    String ImageName = "image_data" ;
+    String ImageName = "image_data";
 
-    ProgressDialog progressDialog ;
+    ProgressDialog progressDialog;
 
-    ByteArrayOutputStream byteArrayOutputStream ;
+    ByteArrayOutputStream byteArrayOutputStream;
 
-    byte[] byteArray ;
+    byte[] byteArray;
 
-    String ConvertImage ;
+    String ConvertImage;
 
     String GetImageNameFromEditText;
 
-    HttpURLConnection httpURLConnection ;
+    HttpURLConnection httpURLConnection;
 
     URL url;
 
     OutputStream outputStream;
 
-    BufferedWriter bufferedWriter ;
+    BufferedWriter bufferedWriter;
 
-    int RC ;
+    int RC;
 
-    BufferedReader bufferedReader ;
+    BufferedReader bufferedReader;
 
     StringBuilder stringBuilder;
 
@@ -86,13 +91,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        GetImageFromGalleryButton = (Button)findViewById(R.id.buttonSelect);
+        GetImageFromGalleryButton = (Button) findViewById(R.id.buttonSelect);
 
-        UploadImageOnServerButton = (Button)findViewById(R.id.buttonUpload);
+        UploadImageOnServerButton = (Button) findViewById(R.id.buttonUpload);
 
-        ShowSelectedImage = (ImageView)findViewById(R.id.imageView);
+        ShowSelectedImage = (ImageView) findViewById(R.id.imageView);
 
-        imageName=(EditText)findViewById(R.id.imageName);
+        imageName = (EditText) findViewById(R.id.imageName);
 
         byteArrayOutputStream = new ByteArrayOutputStream();
 
@@ -126,12 +131,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void showPictureDialog(){
+    private void showPictureDialog() {
         AlertDialog.Builder pictureDialog = new AlertDialog.Builder(this);
         pictureDialog.setTitle("Select Action");
         String[] pictureDialogItems = {
                 "Photo Gallery",
-                "Camera" };
+                "Camera"};
         pictureDialog.setItems(pictureDialogItems,
                 new DialogInterface.OnClickListener() {
                     @Override
@@ -148,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
                 });
         pictureDialog.show();
     }
+
     public void choosePhotoFromGallary() {
         Intent galleryIntent = new Intent(Intent.ACTION_PICK,
                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -157,6 +163,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void takePhotoFromCamera() {
         Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        try {
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".provider", createImageFile()));
+            Log.e("", "putExtra: " );
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("", "ioexception: " + e.getLocalizedMessage() );
+        }
+        Log.e("", "takePhotoFromCamera: " );
         startActivityForResult(intent, CAMERA);
     }
 
@@ -184,8 +198,14 @@ public class MainActivity extends AppCompatActivity {
             }
 
         } else if (requestCode == CAMERA) {
-            FixBitmap = (Bitmap) data.getExtras().get("data");
-            ShowSelectedImage.setImageBitmap(FixBitmap);
+//            FixBitmap = (Bitmap) data.getExtras().get("data");
+            Log.e("", "onActivityResult: " + cameraFilePath );
+            ShowSelectedImage.setImageURI(Uri.parse(cameraFilePath));
+            try {
+                FixBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.parse(cameraFilePath));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             UploadImageOnServerButton.setVisibility(View.VISIBLE);
             //  saveImage(thumbnail);
             //Toast.makeText(ShadiRegistrationPart5.this, "Image Saved!", Toast.LENGTH_SHORT).show();
@@ -193,22 +213,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void UploadImageToServer(){
+    public void UploadImageToServer() {
 
-        FixBitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+//        FixBitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
 
         byteArray = byteArrayOutputStream.toByteArray();
 
         ConvertImage = Base64.encodeToString(byteArray, Base64.DEFAULT);
 
-        class AsyncTaskUploadClass extends AsyncTask<Void,Void,String> {
+        class AsyncTaskUploadClass extends AsyncTask<Void, Void, String> {
 
             @Override
             protected void onPreExecute() {
 
                 super.onPreExecute();
 
-                progressDialog = ProgressDialog.show(MainActivity.this,"Image is Uploading","Please Wait",false,false);
+                progressDialog = ProgressDialog.show(MainActivity.this, "Image is Uploading", "Please Wait", false, false);
             }
 
             @Override
@@ -218,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
 
                 progressDialog.dismiss();
 
-                Toast.makeText(MainActivity.this,string1,Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, string1, Toast.LENGTH_LONG).show();
 
             }
 
@@ -227,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
 
                 ImageProcessClass imageProcessClass = new ImageProcessClass();
 
-                HashMap<String,String> HashMapParams = new HashMap<String,String>();
+                HashMap<String, String> HashMapParams = new HashMap<String, String>();
 
                 HashMapParams.put(ImageTag, GetImageNameFromEditText);
 
@@ -242,9 +262,24 @@ public class MainActivity extends AppCompatActivity {
         AsyncTaskUploadClassOBJ.execute();
     }
 
-    public class ImageProcessClass{
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 5) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Now user should be able to use camera
 
-        public String ImageHttpRequest(String requestURL,HashMap<String, String> PData) {
+            } else {
+
+                Toast.makeText(MainActivity.this, "Unable to use Camera..Please Allow us to use Camera", Toast.LENGTH_LONG).show();
+
+            }
+        }
+    }
+
+    public class ImageProcessClass {
+
+        public String ImageHttpRequest(String requestURL, HashMap<String, String> PData) {
 
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -287,7 +322,7 @@ public class MainActivity extends AppCompatActivity {
 
                     String RC2;
 
-                    while ((RC2 = bufferedReader.readLine()) != null){
+                    while ((RC2 = bufferedReader.readLine()) != null) {
 
                         stringBuilder.append(RC2);
                     }
@@ -321,19 +356,21 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 5) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Now user should be able to use camera
-
-            }
-            else {
-
-                Toast.makeText(MainActivity.this, "Unable to use Camera..Please Allow us to use Camera", Toast.LENGTH_LONG).show();
-
-            }
-        }
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        //This is the directory in which the file will be created. This is the default location of Camera photos
+        File storageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DCIM), "Camera");
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+        // Save a file: path for using again
+        cameraFilePath = "file://" + image.getAbsolutePath();
+        Log.e("", "createImageFile: " + cameraFilePath);
+        return image;
     }
 }
