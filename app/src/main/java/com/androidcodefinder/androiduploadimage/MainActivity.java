@@ -98,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
         ShowSelectedImage = (ImageView) findViewById(R.id.imageView);
 
         imageName = (EditText) findViewById(R.id.imageName);
+        imageName.setText("16-05-2019_12.47");
 
         byteArrayOutputStream = new ByteArrayOutputStream();
 
@@ -116,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                GetImageNameFromEditText = "makan";
+                GetImageNameFromEditText = imageName.getText().toString();
 
                 UploadImageToServer();
 
@@ -255,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
 
                 HashMapParams.put(ImageName, ConvertImage);
 
-                String FinalData = imageProcessClass.ImageHttpRequest("http://192.168.6.196:81/AndroidImage/upload-image-to-server.php", HashMapParams);
+                String FinalData = imageProcessClass.ImageHttpRequest("http://192.168.6.240:81/AndroidImage/upload-image-to-server.php", HashMapParams);
 
                 return FinalData;
             }
